@@ -10,7 +10,7 @@ use std::sync::mpsc::{channel, Sender, Receiver};
 
 use hlua::{Lua, LuaError};
 
-use super::types::*;
+use super::message::*;
 use super::rust_interop;
 use super::init_path;
 
