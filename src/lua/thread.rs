@@ -10,7 +10,7 @@ use std::sync::mpsc::{channel, Sender, Receiver};
 
 use hlua::{Lua, LuaError};
 
-use super::message::*;
+use lua::message::*;
 use super::rust_interop;
 use super::init_path;
 
@@ -25,43 +25,11 @@ lazy_static! {
 const ERR_LOCK_RUNNING: &'static str = "Lua thread: unable to lock RUNNING";
 const ERR_LOCK_SENDER: &'static str = "Lua thread: unable to lock SENDER";
 
-/// Struct sent to the Lua query
-struct LuaMessage {
-    reply: Sender<LuaResponse>,
-    query: LuaQuery
-}
-
-unsafe impl Send for LuaMessage { }
-unsafe impl Sync for LuaMessage { }
-
-
-impl Debug for LuaMessage {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "LuaMessage({:?})", self.query)
-    }
-}
-
-// Reexported in lua/mod.rs:11
 /// Whether the Lua thread is currently available.
 pub fn running() -> bool {
     *RUNNING.read().expect(ERR_LOCK_RUNNING)
 }
 
-// Reexported in lua/mod.rs:11
-/// Errors which may arise from attempting
-/// to sending a message to the Lua thread.
-#[derive(Debug)]
-pub enum LuaSendError {
-    /// The thread crashed, was shut down, or rebooted.
-    ThreadClosed,
-    /// The thread has not been initialized yet (maybe not used)
-    ThreadUninitialized,
-    /// The sender had an issue, most likey because the thread panicked.
-    /// Following the `Sender` API, the original value sent is returned.
-    Sender(LuaQuery)
-}
-
-// Reexported in lua/mod.rs:11
 /// Attemps to send a LuaQuery to the Lua thread.
 pub fn send(query: LuaQuery) -> Result<Receiver<LuaResponse>, LuaSendError> {
     if !running() {

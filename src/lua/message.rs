@@ -1,8 +1,10 @@
 //! Types defined by Lua thread
 
+
+use std::cmp::{PartialEq, Eq};
 use std::fmt::{Debug, Formatter};
 use std::fmt::Result as FmtResult;
-use std::cmp::{PartialEq, Eq};
+use std::sync::mpsc::{Sender, Receiver};
 
 use hlua;
 use hlua::Lua;
@@ -13,8 +15,35 @@ use keys::KeyPress;
 /// Methods that the Lua thread can execute.
 pub type LuaFunc = fn(&mut Lua) -> AnyLuaValue;
 
+/// Struct sent to the Lua query
+pub struct LuaMessage {
+    pub reply: Sender<LuaResponse>,
+    pub query: LuaQuery
+}
+
+/// Errors which may arise from attempting
+/// to sending a message to the Lua thread.
+#[derive(Debug)]
+pub enum LuaSendError {
+    /// The thread crashed, was shut down, or rebooted.
+    ThreadClosed,
+    /// The thread has not been initialized yet (maybe not used)
+    ThreadUninitialized,
+    /// The sender had an issue, most likey because the thread panicked.
+    /// Following the `Sender` API, the original value sent is returned.
+    Sender(LuaQuery)
+}
+unsafe impl Send for LuaMessage { }
+unsafe impl Sync for LuaMessage { }
+
+
+impl Debug for LuaMessage {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "LuaMessage({:?})", self.query)
+    }
+}
+
 /// Messages sent to the lua thread
-#[allow(dead_code)]
 pub enum LuaQuery {
     /// Pings the lua thread
     Ping,
