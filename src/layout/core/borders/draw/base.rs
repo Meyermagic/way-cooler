@@ -72,6 +72,13 @@ impl BaseDraw {
     pub fn borders(&self) -> &Borders {
         &self.borders
     }
+
+    /// Clears the buffer (sets all to 0 green, 0 blue, 0 red, and 0 alpha)
+    pub fn clear(&mut self) {
+        // TODO Grab source before, reset it at the end
+        self.cairo.set_source_rgba(0.0, 0.0, 0.0, 0.0);
+        self.cairo.paint();
+    }
 }
 
 impl Deref for BaseDraw {

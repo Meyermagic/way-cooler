@@ -156,13 +156,18 @@ impl Container {
     pub fn new_view(handle: WlcView) -> Container {
         let geometry = handle.get_geometry()
             .expect("View had no geometry");
+        let output_size = handle.get_output().get_resolution().unwrap();
+        let output_geo = Geometry {
+            origin: Point { x: 0, y: 0 },
+            size: output_size
+        };
         Container::View {
             handle: handle,
             floating: false,
             effective_geometry: geometry,
             id: Uuid::new_v4(),
             // TODO Remove hardcoded thickness
-            borders: Some(Borders::new(geometry, 50))
+            borders: Some(Borders::new(output_geo, 50))
         }
     }
 

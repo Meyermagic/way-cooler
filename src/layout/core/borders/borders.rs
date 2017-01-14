@@ -27,10 +27,10 @@ pub struct Borders {
 impl Borders {
     pub fn new(mut geometry: Geometry, thickness: u32) -> Self {
         // Add the thickness to the geometry.
-        geometry.origin.x -= thickness as i32;
-        geometry.origin.y -= thickness as i32;
-        geometry.size.w += thickness;
-        geometry.size.h += thickness;
+        //geometry.origin.x -= thickness as i32;
+        //geometry.origin.y -= thickness as i32;
+        //geometry.size.w += thickness;
+        //geometry.size.h += thickness;
         error!("Initial geometry: {:?}", geometry);
         let Size { w, h } = geometry.size;
         let stride = calculate_stride(w) as i32;
@@ -53,7 +53,12 @@ impl Borders {
     pub fn render(&mut self) {
         let mut buffer = self.surface.get_data()
             .expect("Could not get border surface buffer");
-        write_pixels(wlc_pixel_format::WLC_RGBA8888, self.geometry, &mut buffer);
+        let geometry = Geometry {
+            origin: Point { x: 0, y: 0},
+            size: self.geometry.size
+        };
+        warn!("rendering @ {:#?}", geometry);
+        write_pixels(wlc_pixel_format::WLC_RGBA8888, geometry, &mut buffer);
     }
 
     /// Updates the position at which we render the buffer.
