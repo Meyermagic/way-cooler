@@ -85,6 +85,7 @@ pub trait Renderable {
         if geometry.origin.y < 0 {
             geometry.origin.y = 0;
         }
+        //warn!("Rendering @ {:#?}", geometry);
         write_pixels(wlc_pixel_format::WLC_RGBA8888, geometry, &buffer);
     }
 }

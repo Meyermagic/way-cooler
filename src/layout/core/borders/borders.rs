@@ -24,7 +24,9 @@ pub struct Borders {
     /// The specific color these borders should be colored.
     ///
     /// If unspecified, the default is used
-    color: Option<Color>
+    color: Option<Color>,
+    /// The title used for the title border.
+    title: String
 }
 
 impl Renderable for Borders {
@@ -36,8 +38,10 @@ impl Renderable for Borders {
         // Add the thickness to the geometry.
         geometry.origin.x -= thickness as i32;
         geometry.origin.y -= thickness as i32;
+        geometry.origin.y -= Borders::title_offset() as i32;
         geometry.size.w += thickness;
         geometry.size.h += thickness;
+        geometry.size.h += Borders::title_offset();
         let Size { w, h } = geometry.size;
         let stride = calculate_stride(w) as i32;
         let data: Vec<u8> = iter::repeat(0).take(h as usize * stride as usize).collect();
@@ -49,6 +53,8 @@ impl Renderable for Borders {
                                                     h as i32,
                                                     stride);
         Some(Borders {
+            // TODO Make configurable
+            title: "Hello World!".into(),
             surface: surface,
             geometry: geometry,
             output: output,
@@ -85,8 +91,11 @@ impl Renderable for Borders {
         }
         geometry.origin.x -= thickness as i32;
         geometry.origin.y -= thickness as i32;
+        geometry.origin.y -= Borders::title_offset() as i32;
         geometry.size.w += thickness;
         geometry.size.h += thickness;
+        geometry.size.h += Borders::title_offset();
+        //warn!("Allocate @ {:#?}", geometry);
         let Size { w, h } = geometry.size;
         if w == self.geometry.size.w && h == self.geometry.size.h {
             return Some(self);
@@ -107,6 +116,19 @@ impl Renderable for Borders {
 }
 
 impl Borders {
+    pub fn title(&self) -> &str {
+        &*self.title
+    }
+
+    /// Gets the offset from the title border.
+    ///
+    /// E.g: this offset is the y value that the top border (that doesn't
+    /// doesn't contain the title text) should start at.
+    pub fn title_offset() -> u32 {
+        // TODO make this a more appropriate value, maybe configurable w/ pango
+        50
+    }
+
     pub fn thickness() -> u32 {
         registry::get_data("border_size")
             .map(registry::RegistryGetData::resolve).and_then(|(_, data)| {
